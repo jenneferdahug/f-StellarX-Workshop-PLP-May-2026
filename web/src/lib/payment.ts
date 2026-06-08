@@ -3,6 +3,7 @@ import {
   Operation,
   Asset,
   BASE_FEE,
+  Memo,
 } from '@stellar/stellar-sdk';
 import { server, NETWORK_PASSPHRASE, USDC_ISSUER } from './stellar';
 
@@ -14,6 +15,7 @@ export async function buildPaymentXDR(
   destination: string,
   amount: string,
   assetCode: AssetCode,
+  memo?: string,
 ): Promise<string> {
   const asset =
     assetCode === 'XLM' ? Asset.native() : new Asset('USDC', USDC_ISSUER);
@@ -21,15 +23,18 @@ export async function buildPaymentXDR(
   // Always load the account fresh so we have the current sequence number.
   const account = await server.getAccount(sender);
 
-  const tx = new TransactionBuilder(account, {
+  const builder = new TransactionBuilder(account, {
     fee: BASE_FEE,
     networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(Operation.payment({ destination, asset, amount }))
-    .setTimeout(60)
-    .build();
+    .setTimeout(60);
 
-  return tx.toXDR();
+  if (memo) {
+    builder.addMemo(Memo.text(memo));
+  }
+
+  return builder.build().toXDR();
 }
 
 /** Submit a Freighter-signed XDR. Returns the transaction hash. */

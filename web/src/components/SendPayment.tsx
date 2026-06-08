@@ -27,6 +27,8 @@ const STATUS_LABEL: Record<Status, string> = {
   error: 'Send',
 };
 
+const CATEGORIES = ['FOOD', 'RENT', 'ENTERTAINMENT', 'SAVINGS', 'OTHER'];
+
 export default function SendPayment({
   publicKey,
   onSent,
@@ -37,6 +39,7 @@ export default function SendPayment({
   const [destination, setDestination] = useState('');
   const [amount, setAmount] = useState('');
   const [asset, setAsset] = useState<AssetCode>('XLM');
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [status, setStatus] = useState<Status>('idle');
   const [txHash, setTxHash] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -48,7 +51,13 @@ export default function SendPayment({
     setErrorMsg('');
     setTxHash('');
     try {
-      const xdr = await buildPaymentXDR(publicKey, destination.trim(), amount, asset);
+      const xdr = await buildPaymentXDR(
+        publicKey,
+        destination.trim(),
+        amount,
+        asset,
+        category,
+      );
 
       setStatus('signing');
       const freighter = await import('@stellar/freighter-api');
@@ -77,72 +86,87 @@ export default function SendPayment({
   };
 
   return (
-    <div className="mt-6 rounded border border-gray-200 bg-white p-6">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Send Payment</h2>
-
-      <div className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm text-gray-600">Asset</label>
-          <select
-            value={asset}
-            onChange={(e) => setAsset(e.target.value as AssetCode)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900"
-          >
-            <option value="XLM">XLM</option>
-            <option value="USDC">USDC (needs a trustline)</option>
-          </select>
+    <div className="p-4 bg-slate-50/50 rounded-b-2xl border-t border-slate-100">
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Asset</label>
+            <select
+              value={asset}
+              onChange={(e) => setAsset(e.target.value as AssetCode)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="XLM">XLM</option>
+              <option value="USDC">USDC</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-gray-600">
-            Destination address
-          </label>
+          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Recipient Address</label>
           <input
             type="text"
-            placeholder="G… (must be an existing funded testnet account)"
+            placeholder="G..."
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-mono text-xs text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-gray-600">Amount</label>
-          <input
-            type="number"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-gray-900"
-          />
+          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Amount</label>
+          <div className="relative">
+            <input
+              type="number"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+            <span className="absolute right-3 top-1.5 text-xs font-bold text-slate-400">{asset}</span>
+          </div>
         </div>
 
         <button
           onClick={handleSend}
           disabled={busy || !destination || !amount}
-          className="w-full rounded bg-emerald-600 py-3 font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-indigo-700 disabled:opacity-50 active:scale-[0.98]"
         >
           {STATUS_LABEL[status]}
         </button>
       </div>
 
       {status === 'success' && (
-        <div className="mt-4 rounded border border-emerald-200 bg-emerald-50 p-3">
-          <p className="font-medium text-emerald-700">Payment confirmed!</p>
+        <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+          <p className="text-xs font-bold text-emerald-700">✓ Sent successfully</p>
           <a
             href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="break-all text-sm text-indigo-600 hover:underline"
+            className="mt-1 block truncate text-[10px] font-medium text-indigo-600 hover:underline"
           >
-            View on Stellar Expert →
+            View receipt on Stellar Expert →
           </a>
         </div>
       )}
 
       {status === 'error' && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3">
-          <p className="text-sm text-red-700">{errorMsg}</p>
+        <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50 p-3">
+          <p className="text-[10px] font-medium text-rose-700">{errorMsg}</p>
         </div>
       )}
     </div>
