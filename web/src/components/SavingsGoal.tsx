@@ -69,24 +69,27 @@ export default function SavingsGoal({ publicKey }: { publicKey: string | null })
     }
   };
 
+  /*
   if (!configured) {
     return (
-      <div className="bg-slate-50 p-6 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <div className="bg-slate-900/50 p-6 text-center border border-slate-800 rounded-2xl">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 text-slate-500">
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
         </div>
-        <h3 className="text-sm font-bold text-slate-900">Deploy Contract</h3>
-        <p className="mt-1 text-xs text-slate-500">
+        <h3 className="text-sm font-bold text-slate-100">Deploy Contract</h3>
+        <p className="mt-1 text-xs text-slate-400">
           Run the deployment script to enable your Soroban savings goal.
         </p>
-        <div className="mt-4 rounded-lg bg-slate-900 p-2 text-left">
-          <code className="text-[10px] text-slate-300">.\scripts\deploy.ps1</code>
+        <div className="mt-4 rounded-lg bg-slate-950 p-2 text-left">
+          <code className="text-[10px] text-indigo-400">.\scripts\deploy.ps1</code>
         </div>
       </div>
     );
   }
+  */
+  if (!configured) return null;
 
   const pct =
     state && state.target > 0
